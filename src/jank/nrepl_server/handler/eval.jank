@@ -5,6 +5,13 @@
    [nrepl-server.capture :as capture]
    [nrepl-server.inspect :refer [inspect-str]]))
 
+(cpp/raw "#include <cstdio>")
+(cpp/raw "
+static FILE* get_stdout() {
+  return stdout;
+}
+")
+
 (def default-ns
   "The namespace in which evaluation will occur when an invalid or no ns
   parameter is specified."
@@ -21,7 +28,7 @@
   ;; output during a long eval.
   (let [target-ns        (or (some-> ns symbol find-ns) default-ns)
         ;; do the eval, capturing anything on stdout
-        capture-handle   (capture/start (cpp/box cpp/stdout))
+        capture-handle   (capture/start (cpp/box (cpp/get_stdout)))
         [success res-ns] (binding [*ns* target-ns]
                            ;; the evaluation may change the namespace
                            [(safe-eval code) *ns*])
